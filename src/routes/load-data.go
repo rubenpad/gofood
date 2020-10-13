@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/rubbenpad/gofood/app"
@@ -9,10 +10,10 @@ import (
 
 func LoadDataAPI(ap *app.App) {
 
-	loadDataService := services.NewLoadDataService()
+	loadDataService := services.NewloadDataService()
 
 	ap.Router.Get("/load", func(w http.ResponseWriter, r *http.Request) {
-		loadDataService.GetData()
-		w.Write([]byte("loading..."))
+		transactions := loadDataService.GetData()
+		fmt.Fprint(w, transactions)
 	})
 }
