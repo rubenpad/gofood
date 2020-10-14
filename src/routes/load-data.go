@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -13,10 +14,8 @@ func LoadDataAPI(ap *app.App) {
 	loadDataService := services.NewloadDataService()
 
 	ap.Router.Get("/load", func(w http.ResponseWriter, r *http.Request) {
-		err := loadDataService.GetData()
-		if err != nil {
-			fmt.Fprint(w, "Service couldn't load data")
-		}
-		fmt.Fprint(w, "Data loaded successfully")
+		query := loadDataService.GetData()
+		encoded, _ := json.Marshal(query)
+		fmt.Fprintf(w, "%s", encoded)
 	})
 }

@@ -96,7 +96,7 @@ func formatProductsData(content io.ReadCloser) []domain.Product {
 
 	raw := strings.Split(string(data), "\n")
 	products := make([]domain.Product, len(raw)-1)
-	leftRegex := regexp.MustCompile(`(?P<left>[a-z0-9])(?:')(?P<right>[A-Z])`)
+	leftRegex := regexp.MustCompile(`(?P<left>[a-z0-9])(?:')(?P<right>[A-Z0-9])`)
 	rightRegex := regexp.MustCompile(`(?P<left>[a-z])(?:')(?P<right>[0-9])`)
 
 	for i := 0; i < len(raw)-1; i++ {
@@ -118,13 +118,13 @@ func formatProductsData(content io.ReadCloser) []domain.Product {
 	return products
 }
 
-func formatBuyersData(content io.ReadCloser) []buyer {
+func formatBuyersData(content io.ReadCloser) []domain.Buyer {
 	data, err := ioutil.ReadAll(content)
 	if err != nil {
 		log.Println("Couldn't format data")
 	}
 
-	buyers := []buyer{}
+	buyers := []domain.Buyer{}
 	jsonerr := json.Unmarshal(data, &buyers)
 	if jsonerr != nil {
 		log.Panic(err)

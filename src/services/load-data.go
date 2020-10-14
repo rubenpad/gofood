@@ -17,7 +17,7 @@ func NewloadDataService() *loadDataService {
 	return &loadDataService{url: baseURL, httpclient: &http.Client{}}
 }
 
-func (ld *loadDataService) GetData() error {
+func (ld *loadDataService) GetData() queryMutation {
 	// TODO pass date as parameter to this function
 	date := "1602530864"
 
@@ -25,7 +25,7 @@ func (ld *loadDataService) GetData() error {
 	productsResponse, _ := ld.makeRequest("/products?date=" + date)
 	buyersResponse, _ := ld.makeRequest("/buyers?date=" + date)
 	if err != nil {
-		return err
+		log.Panic("No")
 	}
 
 	transactions := formatTransactionsData(transactionsResponse.Body)
@@ -33,7 +33,7 @@ func (ld *loadDataService) GetData() error {
 	buyers := formatBuyersData(buyersResponse.Body)
 	queryset := formatQueryData(transactions, products, buyers)
 
-	return nil
+	return queryset
 }
 
 func (ld *loadDataService) makeRequest(path string) (*http.Response, error) {
