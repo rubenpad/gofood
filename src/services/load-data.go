@@ -3,18 +3,15 @@ package services
 import (
 	"log"
 	"net/http"
+	"os"
 )
 
-// TODO set environment variables
-const baseURL = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com"
-
 type loadDataService struct {
-	url        string
 	httpclient *http.Client
 }
 
 func NewloadDataService() *loadDataService {
-	return &loadDataService{url: baseURL, httpclient: &http.Client{}}
+	return &loadDataService{httpclient: &http.Client{}}
 }
 
 func (ld *loadDataService) GetData() queryMutation {
@@ -37,9 +34,10 @@ func (ld *loadDataService) GetData() queryMutation {
 }
 
 func (ld *loadDataService) makeRequest(path string) (*http.Response, error) {
-	res, err := ld.httpclient.Get(ld.url + path)
+	url, _ := os.LookupEnv("BASE_URL")
+	res, err := ld.httpclient.Get(url + path)
 	if err != nil {
-		log.Fatal("Failed fetching data")
+		log.Panic("Failed fetching data")
 		return nil, err
 	}
 
