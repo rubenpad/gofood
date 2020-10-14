@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
@@ -10,10 +11,46 @@ import (
 	"github.com/rubbenpad/gofood/domain"
 )
 
+type queryMutation struct {
+	Set []interface{} `json:"set,omitempty"`
+}
+
+// This function format all recollected data in a way to create nodes between
+// buyers -> transactions -> products then pass it to make a query to dgraph
+// database and store it.
+func formatQueryData(
+	transactions []domain.Transaction,
+	products []domain.Product,
+	buyers []domain.Buyer,
+) queryMutation {
+
+	queryset := queryMutation{}
+	query := make([]interface{}, len(transactions)+len(products)+len(buyers))
+
+	i := 0
+	for _, item := range transactions {
+		query[i] = item
+		i++
+	}
+
+	for _, item := range products {
+		query[i] = item
+		i++
+	}
+
+	for _, item := range buyers {
+		query[i] = item
+		i++
+	}
+
+	queryset.Set = query
+	return queryset
+}
+
 // Endpoint "/transactions" send no standard data
 // i.e: "#00005f80fa12'2a2dc5b'246.124.213.49'ios'(7dd44f1d,e4356fea)"
 // representing data from transactions and this function is a helper to format it.
-func formatNoStandardData(content io.ReadCloser) []domain.Transaction {
+func formatTransactionsData(content io.ReadCloser) []domain.Transaction {
 	data, err := ioutil.ReadAll(content)
 	if err != nil {
 		log.Println("Couldn't format data")
@@ -51,7 +88,7 @@ func formatNoStandardData(content io.ReadCloser) []domain.Transaction {
 // /products data is formatted like CSV but with ' as separator
 // This function returns received data as an slice of
 // { "id": product_id, "name": product_name, "price": product_price }
-func formatCSVData(content io.ReadCloser) []domain.Product {
+func formatProductsData(content io.ReadCloser) []domain.Product {
 	data, err := ioutil.ReadAll(content)
 	if err != nil {
 		log.Println("Couldn't format data")
@@ -79,4 +116,23 @@ func formatCSVData(content io.ReadCloser) []domain.Product {
 	}
 
 	return products
+}
+
+func formatBuyersData(content io.ReadCloser) []buyer {
+	data, err := ioutil.ReadAll(content)
+	if err != nil {
+		log.Println("Couldn't format data")
+	}
+
+	buyers := []buyer{}
+	jsonerr := json.Unmarshal(data, &buyers)
+	if jsonerr != nil {
+		log.Panic(err)
+	}
+
+	for i := range buyers {
+		buyers[i].UID = "_:" + buyers[i].ID
+	}
+
+	return buyers
 }

@@ -3,10 +3,9 @@ package services
 import (
 	"log"
 	"net/http"
-
-	"github.com/rubbenpad/gofood/domain"
 )
 
+// TODO set environment variables
 const baseURL = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com"
 
 type loadDataService struct {
@@ -18,14 +17,23 @@ func NewloadDataService() *loadDataService {
 	return &loadDataService{url: baseURL, httpclient: &http.Client{}}
 }
 
-func (ld *loadDataService) GetData() []domain.Transaction {
-	transactionsResponse, err := ld.makeRequest("/transactions?date=" + "1602530864")
+func (ld *loadDataService) GetData() error {
+	// TODO pass date as parameter to this function
+	date := "1602530864"
+
+	transactionsResponse, err := ld.makeRequest("/transactions?date=" + date)
+	productsResponse, _ := ld.makeRequest("/products?date=" + date)
+	buyersResponse, _ := ld.makeRequest("/buyers?date=" + date)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	transactions := formatNoStandardData(transactionsResponse.Body)
-	return transactions
+	transactions := formatTransactionsData(transactionsResponse.Body)
+	products := formatProductsData(productsResponse.Body)
+	buyers := formatBuyersData(buyersResponse.Body)
+	queryset := formatQueryData(transactions, products, buyers)
+
+	return nil
 }
 
 func (ld *loadDataService) makeRequest(path string) (*http.Response, error) {
