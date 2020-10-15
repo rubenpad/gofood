@@ -90,7 +90,7 @@ func formatProductsData(content io.ReadCloser) []domain.Product {
 
 	raw := strings.Split(string(data), "\n")
 	products := make([]domain.Product, len(raw)-1)
-	leftRegex := regexp.MustCompile(`(?P<left>[a-z0-9])(?:')(?P<right>[A-Z0-9])`)
+	leftRegex := regexp.MustCompile(`(?i)(?P<left>[a-z0-9])(?:')(?P<right>[a-z0-9])`)
 	rightRegex := regexp.MustCompile(`(?P<left>[a-z])(?:')(?P<right>[0-9])`)
 
 	for i := 0; i < len(raw)-1; i++ {

@@ -17,10 +17,8 @@ func NewloadDataService() *loadDataService {
 	return &loadDataService{httpclient: &http.Client{}}
 }
 
-func (ld *loadDataService) GetData() error {
+func (ld *loadDataService) GetData(date string) error {
 	store := store.New()
-	// TODO pass date as parameter to this function
-	date := "1602530864"
 
 	transactionsResponse, err := ld.makeRequest("/transactions?date=" + date)
 	productsResponse, _ := ld.makeRequest("/products?date=" + date)
