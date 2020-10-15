@@ -13,23 +13,31 @@ func LoadDataAPI(ap *app.App) {
 
 	ap.Router.Get("/data", func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("date")
-		err := loadDataService.GetData(date)
-		res := response{}
+		dataIsAlreadyLoaded, err := loadDataService.GetData(date)
 		w.Header().Set("Content-Type", "application/json")
+		res := response{}
+
+		if dataIsAlreadyLoaded {
+			res.Message = "Data for this date is already loaded"
+			res.Status = "OK"
+
+			json.NewEncoder(w).Encode(res)
+			return
+		}
 
 		if err != nil {
-			res.Data = make([]interface{}, 1)
 			res.Message = "Data no loaded"
 			res.Status = "Error"
 
 			json.NewEncoder(w).Encode(res)
+			return
 		}
 
-		res.Data = nil
 		res.Message = "Data loaded"
 		res.Status = "OK"
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(res)
+		return
 	})
 }

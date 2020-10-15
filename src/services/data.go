@@ -17,8 +17,13 @@ func NewloadDataService() *loadDataService {
 	return &loadDataService{httpclient: &http.Client{}}
 }
 
-func (ld *loadDataService) GetData(date string) error {
+func (ld *loadDataService) GetData(date string) (bool, error) {
 	store := store.New()
+	dateExists := store.GetDate(date)
+
+	if dateExists {
+		return dateExists, nil
+	}
 
 	transactionsResponse, err := ld.makeRequest("/transactions?date=" + date)
 	productsResponse, _ := ld.makeRequest("/products?date=" + date)
@@ -27,7 +32,7 @@ func (ld *loadDataService) GetData(date string) error {
 		log.Panic("Couldn't get data")
 	}
 
-	transactions := formatTransactionsData(transactionsResponse.Body)
+	transactions := formatTransactionsData(date, transactionsResponse.Body)
 	products := formatProductsData(productsResponse.Body)
 	buyers := formatBuyersData(buyersResponse.Body)
 	mutation := formatQueryData(transactions, products, buyers)
@@ -35,10 +40,10 @@ func (ld *loadDataService) GetData(date string) error {
 
 	savedErr := store.Save(encoded)
 	if savedErr != nil {
-		return savedErr
+		return false, savedErr
 	}
 
-	return nil
+	return false, nil
 }
 
 func (ld *loadDataService) makeRequest(path string) (*http.Response, error) {

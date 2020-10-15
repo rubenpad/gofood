@@ -2,12 +2,14 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/dgraph-io/dgo/v200"
 	"github.com/dgraph-io/dgo/v200/protos/api"
+	"github.com/rubbenpad/gofood/domain"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding/gzip"
 )
@@ -36,6 +38,8 @@ func (dg *dgraph) Setup() {
 		Schema: `
 			id: string @index(exact) .
 			ip: string @index(exact) .
+			date: string @index(exact) .
+			when: uid @reverse .
 			from: uid @reverse .
 			owner: uid @reverse .
 			products_id: [uid] @reverse .
@@ -56,43 +60,93 @@ func (dg *dgraph) Save(content []byte) error {
 	return err
 }
 
+// Make a query to verify if data for a date is already loaded
+// and returns a bool accordign the case.
+func (dg *dgraph) GetDate(date string) bool {
+	variables := map[string]string{"$date": date}
+	query := `
+		query dateExists($date: string) {
+			exists(func: eq(date, $date)) {
+				uid date
+			}
+		}
+	`
+
+	res, err := dg.db.NewTxn().QueryWithVars(context.Background(), query, variables)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	type decode struct {
+		Exists []domain.Timestamp `json:"exists"`
+	}
+
+	exists := decode{}
+	jsonErr := json.Unmarshal(res.Json, &exists)
+	if jsonErr != nil {
+		log.Panic(jsonErr)
+	}
+
+	if len(exists.Exists) == 0 {
+		return false
+	}
+
+	return true
+}
+
 func (dg *dgraph) FindTransactions(id string) {
 	variables := map[string]string{"$id": id}
 	query := `
-		query ($id: string) {
+		query myDemoQuery($id: string) {
 			var(func: eq(id, $id)) {
-				ID as id
-				~owner {
-					from { IP as ip }
+		  		ID as id
+		  		~owner {
 					products_id { PID as id }
-				}
+					from { IP as ip }
+		  		}
 			}
-
-			history(func: uid(ID)) {
-				transactions: ~owner {
+		  
+			var(func: uid(PID)) {
+		  		~products_id {
+					products_id @filter(not uid(PID)) {
+			  			SPID as id
+					}
+		  		}
+			}
+		
+			var(func: uid(ID)) {
+		  		transactions: ~owner { TID as id }
+			}
+		
+			history(func: uid(TID)) {
+		  		id
+		  		device
+		  		from { ip }
+		  		products_id {
 					id
-					device
-					products_id {
-						id name price
+					name
+					price
+		  		}
+			}
+		
+			IPList(func: uid(IP)) {
+		  		uid
+		  		ip
+		  		buyers: ~from {
+					buyer: owner @filter(not uid(ID)) {
+			  			id
+			  			name
+			  			age
 					}
-					from { ip }
-				}
+		  		}
 			}
-
-			people(func: eq(ip, val(IP))) {
-				sameIP: ~from {
-					~owner @filter(not uid(PID)) {
-						id name age
-					}
-				}
+		  
+			suggestions(func: uid(SPID)) {
+		  		id
+		  		name
+		  		price
 			}
-
-			products(func: uid(PID)) {
-				items: ~products_id @filter(not uid(PID)) {
-					id name price
-				}
-			}
-		}
+	  	}
 	`
 
 	res, err := dg.db.NewTxn().QueryWithVars(context.Background(), query, variables)

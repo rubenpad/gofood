@@ -44,7 +44,7 @@ func formatQueryData(
 // Endpoint "/transactions" send no standard data
 // i.e: "#00005f80fa12'2a2dc5b'246.124.213.49'ios'(7dd44f1d,e4356fea)"
 // representing data from transactions and this function is a helper to format it.
-func formatTransactionsData(content io.ReadCloser) []domain.Transaction {
+func formatTransactionsData(date string, content io.ReadCloser) []domain.Transaction {
 	data, err := ioutil.ReadAll(content)
 	if err != nil {
 		log.Println("Couldn't format data")
@@ -67,15 +67,16 @@ func formatTransactionsData(content io.ReadCloser) []domain.Transaction {
 			productsid[j] = domain.Uid{UID: "_:" + pid}
 		}
 
+		when := domain.Timestamp{UID: "_:" + date, Date: date}
 		transactions[i] = domain.Transaction{
 			ID:       rawstr[0],
 			Device:   rawstr[3],
+			When:     when,
 			Products: productsid,
 			From:     domain.Ip{IP: rawstr[2], UID: "_:" + rawstr[2]},
 			Owner:    domain.Uid{UID: "_:" + rawstr[1]},
 		}
 	}
-
 	return transactions
 }
 
@@ -104,6 +105,7 @@ func formatProductsData(content io.ReadCloser) []domain.Product {
 		rawItem := strings.Split(item, ",")
 		products[i] = domain.Product{
 			UID:   "_:" + rawItem[0],
+			ID:    rawItem[0],
 			Name:  rawItem[1],
 			Price: rawItem[2],
 		}
