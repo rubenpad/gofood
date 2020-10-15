@@ -18,7 +18,7 @@ func NewloadDataService() *loadDataService {
 }
 
 func (ld *loadDataService) GetData() error {
-	dgraph := store.New()
+	store := store.New()
 	// TODO pass date as parameter to this function
 	date := "1602530864"
 
@@ -35,9 +35,9 @@ func (ld *loadDataService) GetData() error {
 	mutation := formatQueryData(transactions, products, buyers)
 	encoded, _ := json.Marshal(mutation)
 
-	mutationErr := dgraph.MakeMutation(encoded)
-	if mutationErr != nil {
-		return mutationErr
+	savedErr := store.Save(encoded)
+	if savedErr != nil {
+		return savedErr
 	}
 
 	return nil

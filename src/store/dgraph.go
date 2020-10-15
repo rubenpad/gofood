@@ -49,7 +49,7 @@ func (dg *dgraph) Setup() {
 	}
 }
 
-func (dg *dgraph) MakeMutation(content []byte) error {
+func (dg *dgraph) Save(content []byte) error {
 	mutation := &api.Mutation{CommitNow: true, SetJson: content}
 	_, err := dg.db.NewTxn().Mutate(context.Background(), mutation)
 	return err

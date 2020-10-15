@@ -20,12 +20,12 @@ func init() {
 
 func main() {
 
-	// This allows sync dgraph schema
-	setupdb, _ := os.LookupEnv("SETUP_DB")
-	fmt.Println(setupdb)
-	if setupdb == "yes" {
-		dgraph := store.New()
-		dgraph.Setup()
+	// This allows sync store schema
+	setupStore, _ := os.LookupEnv("SETUP_DB")
+	fmt.Println(setupStore)
+	if setupStore == "yes" {
+		store := store.New()
+		store.Setup()
 	}
 
 	// Start app and pass it as parameter to api's
