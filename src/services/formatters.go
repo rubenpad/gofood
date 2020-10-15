@@ -11,10 +11,6 @@ import (
 	"github.com/rubbenpad/gofood/domain"
 )
 
-type queryMutation struct {
-	Set []interface{} `json:"set,omitempty"`
-}
-
 // This function format all recollected data in a way to create nodes between
 // buyers -> transactions -> products then pass it to make a query to dgraph
 // database and store it.
@@ -22,29 +18,27 @@ func formatQueryData(
 	transactions []domain.Transaction,
 	products []domain.Product,
 	buyers []domain.Buyer,
-) queryMutation {
+) []interface{} {
 
-	queryset := queryMutation{}
-	query := make([]interface{}, len(transactions)+len(products)+len(buyers))
+	mutation := make([]interface{}, len(transactions)+len(products)+len(buyers))
 
 	i := 0
 	for _, item := range transactions {
-		query[i] = item
+		mutation[i] = item
 		i++
 	}
 
 	for _, item := range products {
-		query[i] = item
+		mutation[i] = item
 		i++
 	}
 
 	for _, item := range buyers {
-		query[i] = item
+		mutation[i] = item
 		i++
 	}
 
-	queryset.Set = query
-	return queryset
+	return mutation
 }
 
 // Endpoint "/transactions" send no standard data

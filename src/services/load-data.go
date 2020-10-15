@@ -1,9 +1,12 @@
 package services
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/rubbenpad/gofood/store"
 )
 
 type loadDataService struct {
@@ -14,7 +17,8 @@ func NewloadDataService() *loadDataService {
 	return &loadDataService{httpclient: &http.Client{}}
 }
 
-func (ld *loadDataService) GetData() queryMutation {
+func (ld *loadDataService) GetData() error {
+	dgraph := store.New()
 	// TODO pass date as parameter to this function
 	date := "1602530864"
 
@@ -22,15 +26,21 @@ func (ld *loadDataService) GetData() queryMutation {
 	productsResponse, _ := ld.makeRequest("/products?date=" + date)
 	buyersResponse, _ := ld.makeRequest("/buyers?date=" + date)
 	if err != nil {
-		log.Panic("No")
+		log.Panic("Couldn't get data")
 	}
 
 	transactions := formatTransactionsData(transactionsResponse.Body)
 	products := formatProductsData(productsResponse.Body)
 	buyers := formatBuyersData(buyersResponse.Body)
-	queryset := formatQueryData(transactions, products, buyers)
+	mutation := formatQueryData(transactions, products, buyers)
+	encoded, _ := json.Marshal(mutation)
 
-	return queryset
+	mutationErr := dgraph.MakeMutation(encoded)
+	if mutationErr != nil {
+		return mutationErr
+	}
+
+	return nil
 }
 
 func (ld *loadDataService) makeRequest(path string) (*http.Response, error) {
