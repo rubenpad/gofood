@@ -11,3 +11,7 @@ type decodeddata struct {
 	IPList      []interface{} `json:"iplist,omitempty"`
 	Suggestions []interface{} `json:"suggestions,omitempty"`
 }
+
+type decodeBuyers struct {
+	Buyers []interface{} `json:"buyers,omitempty"`
+}

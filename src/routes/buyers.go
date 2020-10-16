@@ -13,6 +13,29 @@ import (
 func BuyersAPI(ap *app.App) {
 	buyersService := services.NewBuyersService()
 
+	ap.Router.Get("/buyers", func(w http.ResponseWriter, r *http.Request) {
+		data, err := buyersService.FindAllBuyers()
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		res := response{}
+
+		if err != nil {
+			res.Message = "Failed to fetch buyer's data"
+			res.Status = "Error"
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		buyers := decodeBuyers{}
+		json.Unmarshal(data, &buyers)
+
+		res.Data = buyers
+		res.Message = "Success"
+		res.Status = "OK"
+		json.NewEncoder(w).Encode(res)
+		return
+	})
+
 	ap.Router.Get("/buyers/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		data, err := buyersService.FindTransactions(id)

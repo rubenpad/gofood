@@ -41,7 +41,7 @@ func (dg *dgraph) Setup() {
 			when: uid @reverse .
 			from: uid @reverse .
 			owner: uid @reverse .
-			products_id: [uid] @reverse .
+			products: [uid] @reverse .
 			name: string .
 			age: int .
 			price: string .
@@ -93,6 +93,23 @@ func (dg *dgraph) GetDate(date string) bool {
 	return true
 }
 
+func (dg *dgraph) FindAllBuyers() ([]byte, error) {
+	query := `
+		query allBuyers() {
+  			buyers(func: has(age)) {
+    			id name age
+  			}
+		}
+	`
+
+	res, err := dg.db.NewTxn().Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Json, nil
+}
+
 func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 	variables := map[string]string{"$id": id}
 	query := `
@@ -100,14 +117,14 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 			var(func: eq(id, $id)) {
 		  		ID as id
 		  		~owner {
-					products_id { PID as id }
+					products { PID as id }
 					from { IP as ip }
 		  		}
 			}
 		  
 			var(func: uid(PID)) {
-		  		~products_id {
-					products_id @filter(not uid(PID)) {
+		  		~products {
+					products @filter(not uid(PID)) {
 			  			SPID as id
 					}
 		  		}
@@ -121,7 +138,7 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 		  		id
 		  		device
 		  		from { ip }
-		  		products_id {
+		  		products {
 					id
 					name
 					price
