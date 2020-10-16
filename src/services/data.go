@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 
@@ -29,7 +28,7 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 	productsResponse, _ := ld.makeRequest("/products?date=" + date)
 	buyersResponse, _ := ld.makeRequest("/buyers?date=" + date)
 	if err != nil {
-		log.Panic("Couldn't get data")
+		return false, err
 	}
 
 	transactions := formatTransactionsData(date, transactionsResponse.Body)
@@ -50,7 +49,6 @@ func (ld *loadDataService) makeRequest(path string) (*http.Response, error) {
 	url, _ := os.LookupEnv("BASE_URL")
 	res, err := ld.httpclient.Get(url + path)
 	if err != nil {
-		log.Panic("Failed fetching data")
 		return nil, err
 	}
 

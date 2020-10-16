@@ -15,6 +15,7 @@ func LoadDataAPI(ap *app.App) {
 		date := r.URL.Query().Get("date")
 		dataIsAlreadyLoaded, err := loadDataService.GetData(date)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		res := response{}
 
 		if dataIsAlreadyLoaded {
@@ -35,7 +36,6 @@ func LoadDataAPI(ap *app.App) {
 
 		res.Message = "Data loaded"
 		res.Status = "OK"
-		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(res)
 		return
 	})
