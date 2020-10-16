@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -94,10 +93,10 @@ func (dg *dgraph) GetDate(date string) bool {
 	return true
 }
 
-func (dg *dgraph) FindTransactions(id string) {
+func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 	variables := map[string]string{"$id": id}
 	query := `
-		query myDemoQuery($id: string) {
+		query transactionsHistory($id: string) {
 			var(func: eq(id, $id)) {
 		  		ID as id
 		  		~owner {
@@ -151,7 +150,8 @@ func (dg *dgraph) FindTransactions(id string) {
 
 	res, err := dg.db.NewTxn().QueryWithVars(context.Background(), query, variables)
 	if err != nil {
-		log.Panic(err)
+		return nil, err
 	}
-	fmt.Printf("%s", res)
+
+	return res.Json, nil
 }

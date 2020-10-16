@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -14,18 +15,26 @@ func BuyersAPI(ap *app.App) {
 
 	ap.Router.Get("/buyers/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		buyersService.FindTransactions(id)
-		/*if err != nil {
-			jsonapi.MarshalPayload(w, response{
-				data:    nil,
-				message: "Error trying to fetch buyer transactions",
-				status:  "Error",
-			})
+		data, err := buyersService.FindTransactions(id)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		res := response{}
+
+		if err != nil {
+			res.Message = "Failed to fetch buyer's data"
+			res.Status = "Error"
+			json.NewEncoder(w).Encode(res)
+			return
 		}
-		jsonapi.MarshalPayload(w, response{
-			data:    data,
-			message: "Success",
-			status:  "OK",
-		})*/
+
+		datadecoded := decodeddata{}
+		json.Unmarshal(data, &datadecoded)
+
+		res.Data = datadecoded
+		res.Message = "Success"
+		res.Status = "OK"
+		json.NewEncoder(w).Encode(res)
+		return
 	})
 }

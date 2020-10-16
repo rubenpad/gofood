@@ -35,7 +35,6 @@ func LoadDataAPI(ap *app.App) {
 
 		res.Message = "Data loaded"
 		res.Status = "OK"
-
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(res)
 		return

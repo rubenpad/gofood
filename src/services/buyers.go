@@ -10,8 +10,8 @@ func NewBuyersService() *buyersService {
 	return &buyersService{}
 }
 
-func (bs *buyersService) FindTransactions(id string) {
+func (bs *buyersService) FindTransactions(id string) ([]byte, error) {
 	store := store.New()
-	store.FindTransactions(id)
-	//return data, err
+	data, err := store.FindTransactions(id)
+	return data, err
 }
