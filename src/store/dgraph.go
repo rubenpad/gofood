@@ -119,6 +119,7 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 		  		~owner {
 					products { PID as id }
 					from { IP as ip }
+					when { DATE as date }
 		  		}
 			}
 		  
@@ -134,33 +135,26 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 		  		transactions: ~owner { TID as id }
 			}
 		
-			history(func: uid(TID)) {
-		  		id
-		  		device
-		  		from { ip }
-		  		products {
-					id
-					name
-					price
-		  		}
+			history(func: uid(DATE)) {
+				date
+				transactions: ~when @filter(uid(TID)) {
+					id device
+					from { ip }
+					products { id name price }
+				}
 			}
 		
 			IPList(func: uid(IP)) {
-		  		uid
-		  		ip
+		  		uid ip 
 		  		buyers: ~from {
 					buyer: owner @filter(not uid(ID)) {
-			  			id
-			  			name
-			  			age
+			  			id name age
 					}
 		  		}
 			}
 		  
 			suggestions(func: uid(SPID)) {
-		  		id
-		  		name
-		  		price
+		  		id name price
 			}
 	  	}
 	`
