@@ -44,7 +44,7 @@ func (dg *dgraph) Setup() {
 			products: [uid] @reverse .
 			name: string .
 			age: int .
-			price: string .
+			price: int .
 			device: string .
 		`,
 	})

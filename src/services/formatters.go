@@ -2,8 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"io"
-	"io/ioutil"
 	"log"
 	"regexp"
 	"strconv"
@@ -45,12 +43,7 @@ func formatQueryData(
 // Endpoint "/transactions" send no standard data
 // i.e: "#00005f80fa12'2a2dc5b'246.124.213.49'ios'(7dd44f1d,e4356fea)"
 // representing data from transactions and this function is a helper to format it.
-func formatTransactionsData(date string, content io.ReadCloser) []domain.Transaction {
-	data, err := ioutil.ReadAll(content)
-	if err != nil {
-		log.Println("Couldn't format data")
-	}
-
+func formatTransactionsData(date string, data []byte) []domain.Transaction {
 	raw := strings.Split(string(data), "\x00\x00")
 	transactions := make([]domain.Transaction, len(raw)-1)
 
@@ -84,15 +77,10 @@ func formatTransactionsData(date string, content io.ReadCloser) []domain.Transac
 // /products data is formatted like CSV but with ' as separator
 // This function returns received data as an slice of
 // { "id": product_id, "name": product_name, "price": product_price }
-func formatProductsData(content io.ReadCloser) []domain.Product {
-	data, err := ioutil.ReadAll(content)
-	if err != nil {
-		log.Println("Couldn't format data")
-	}
-
+func formatProductsData(data []byte) []domain.Product {
 	raw := strings.Split(string(data), "\n")
 	products := make([]domain.Product, len(raw)-1)
-	regex := regexp.MustCompile(`(?P<left>[a-z0-9])(?:')(?P<right>[0-9])`)
+	regex := regexp.MustCompile(`(?P<left>[a-zA-Z0-9])(?:')(?P<right>[0-9])`)
 
 	for i := 0; i < len(raw)-1; i++ {
 		// Work to format data. Here delete double quote and replace the leftmost
@@ -116,16 +104,11 @@ func formatProductsData(content io.ReadCloser) []domain.Product {
 	return products
 }
 
-func formatBuyersData(content io.ReadCloser) []domain.Buyer {
-	data, err := ioutil.ReadAll(content)
-	if err != nil {
-		log.Println("Couldn't format data")
-	}
-
+func formatBuyersData(data []byte) []domain.Buyer {
 	buyers := []domain.Buyer{}
 	jsonerr := json.Unmarshal(data, &buyers)
 	if jsonerr != nil {
-		log.Panic(err)
+		log.Panic(jsonerr)
 	}
 
 	for i := range buyers {
