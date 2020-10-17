@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/rubbenpad/gofood/domain"
@@ -103,11 +104,13 @@ func formatProductsData(content io.ReadCloser) []domain.Product {
 		item = leftRegex.ReplaceAllString(item, "$left,$right")
 		item = rightRegex.ReplaceAllString(item, "$left,$right")
 		rawItem := strings.Split(item, ",")
+		price, _ := strconv.Atoi(rawItem[2])
+
 		products[i] = domain.Product{
 			UID:   "_:" + rawItem[0],
 			ID:    rawItem[0],
 			Name:  rawItem[1],
-			Price: rawItem[2],
+			Price: price,
 		}
 	}
 
