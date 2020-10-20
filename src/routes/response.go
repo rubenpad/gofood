@@ -1,5 +1,9 @@
 package routes
 
+import (
+	"github.com/rubbenpad/gofood/domain"
+)
+
 type response struct {
 	Data    interface{} `json:"data,omitempty"`
 	Message string      `json:"message,omitempty"`
@@ -13,5 +17,5 @@ type decodeddata struct {
 }
 
 type decodeBuyers struct {
-	Buyers []interface{} `json:"buyers,omitempty"`
+	Buyers []domain.Buyer `json:"buyers"`
 }
