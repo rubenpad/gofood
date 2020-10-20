@@ -11,9 +11,10 @@ type response struct {
 }
 
 type decodeddata struct {
-	History     []interface{} `json:"history,omitempty"`
-	IPList      []interface{} `json:"iplist,omitempty"`
-	Suggestions []interface{} `json:"suggestions,omitempty"`
+	Buyer       domain.Buyer  `json:"buyer"`
+	History     []interface{} `json:"history"`
+	IPList      []interface{} `json:"iplist"`
+	Suggestions []interface{} `json:"suggestions"`
 }
 
 type decodeBuyers struct {

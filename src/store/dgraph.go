@@ -53,10 +53,10 @@ func (dg *dgraph) Setup() {
 	}
 }
 
-func (dg *dgraph) Save(content []byte) error {
+func (dg *dgraph) Save(content []byte) (*api.Response, error) {
 	mutation := &api.Mutation{CommitNow: true, SetJson: content}
-	_, err := dg.db.NewTxn().Mutate(context.Background(), mutation)
-	return err
+	assigned, err := dg.db.NewTxn().Mutate(context.Background(), mutation)
+	return assigned, err
 }
 
 // Make a query to verify if data for a date is already loaded
@@ -97,7 +97,24 @@ func (dg *dgraph) FindAllBuyers() ([]byte, error) {
 	query := `
 		query allBuyers() {
   			buyers(func: has(age)) {
-    			id name age
+    			uid id name age
+  			}
+		}
+	`
+
+	res, err := dg.db.NewTxn().Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Json, nil
+}
+
+func (dg *dgraph) FindAllProducts() ([]byte, error) {
+	query := `
+		query allProducts() {
+  			products(func: has(price)) {
+    			uid id name age
   			}
 		}
 	`
@@ -133,6 +150,10 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 		
 			var(func: uid(ID)) {
 		  		transactions: ~owner { TID as id }
+			}
+
+			buyer(func: eq(id, $id)) {
+				uid id name age
 			}
 		
 			history(func: uid(DATE)) {

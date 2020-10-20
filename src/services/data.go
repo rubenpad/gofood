@@ -28,15 +28,31 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 	requests := ld.buildRequests(date)
 	results := ld.fetchConcurrently(requests)
 
-	transactions := formatTransactionsData(date, results["transactions"].response.data)
-	products := formatProductsData(results["products"].response.data)
-	buyers := formatBuyersData(results["buyers"].response.data)
-	mutation := formatQueryData(transactions, products, buyers)
-	encoded, _ := json.Marshal(mutation)
+	savedProducts, _ := store.FindAllProducts()
+	products := formatProductsData(results["products"].response.data, savedProducts)
 
-	savedErr := store.Save(encoded)
-	if savedErr != nil {
-		return false, savedErr
+	savedBuyers, _ := store.FindAllBuyers()
+	buyers := formatBuyersData(results["buyers"].response.data, savedBuyers)
+
+	// Encoded and save products
+	encodedProducts, _ := json.Marshal(products)
+	assignedProducts, _ := store.Save(encodedProducts)
+
+	// Encoded and save buyers
+	encodedBuyers, _ := json.Marshal(buyers)
+	assignedBuyers, _ := store.Save(encodedBuyers)
+
+	transactions := formatTransactionsData(
+		date,
+		results["transactions"].response.data,
+		assignedProducts.Uids,
+		assignedBuyers.Uids,
+	)
+	encodedTransactions, _ := json.Marshal(transactions)
+	_, err := store.Save(encodedTransactions)
+
+	if err != nil {
+		return false, err
 	}
 
 	return false, nil
