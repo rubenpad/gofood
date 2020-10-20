@@ -143,7 +143,8 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 			var(func: uid(PID)) {
 		  		~products {
 					products @filter(not uid(PID)) {
-			  			SPID as id
+						SPID as id
+						TIMES as count(~products)
 					}
 		  		}
 			}
@@ -174,7 +175,7 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 		  		}
 			}
 		  
-			suggestions(func: uid(SPID)) {
+			suggestions(func: uid(SPID), orderdesc: val(TIMES), first: 10) {
 		  		id name price
 			}
 	  	}
