@@ -97,9 +97,7 @@ type requestResult struct {
 	key      string
 }
 
-func (ld *loadDataService) fetchConcurrently(
-	requests map[string]func() (*remoteResponse, error),
-) map[string]*requestResult {
+func (ld *loadDataService) fetchConcurrently(requests map[string]func() (*remoteResponse, error)) map[string]*requestResult {
 
 	cn := make(chan *requestResult, len(requests))
 	fns := make([]func(), len(requests))
