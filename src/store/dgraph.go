@@ -152,7 +152,7 @@ func (dg *dgraph) FindTransactions(id string) ([]byte, error) {
 		  		transactions: ~owner { TID as id }
 			}
 
-			buyer(func: eq(id, $id)) {
+			buyer(func: eq(id, val(ID))) {
 				uid id name age
 			}
 		

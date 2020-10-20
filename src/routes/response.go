@@ -11,7 +11,7 @@ type response struct {
 }
 
 type decodeddata struct {
-	Buyer       domain.Buyer  `json:"buyer"`
+	Buyer       interface{}   `json:"buyer"`
 	History     []interface{} `json:"history"`
 	IPList      []interface{} `json:"iplist"`
 	Suggestions []interface{} `json:"suggestions"`
