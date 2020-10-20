@@ -11,7 +11,7 @@ import (
 func LoadDataAPI(ap *app.App) {
 	loadDataService := services.NewloadDataService()
 
-	ap.Router.Get("/data", func(w http.ResponseWriter, r *http.Request) {
+	ap.Router.Post("/data", func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("date")
 		dataIsAlreadyLoaded, err := loadDataService.GetData(date)
 		w.Header().Set("Content-Type", "application/json")
