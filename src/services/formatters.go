@@ -13,11 +13,7 @@ import (
 // This function format all recollected data in a way to create nodes between
 // buyers -> transactions -> products then pass it to make a query to dgraph
 // database and store it.
-func formatQueryData(
-	transactions []domain.Transaction,
-	products []domain.Product,
-	buyers []domain.Buyer,
-) []interface{} {
+func formatQueryData(transactions []domain.Transaction, products []domain.Product, buyers []domain.Buyer) []interface{} {
 
 	mutation := make([]interface{}, len(transactions)+len(products)+len(buyers))
 
@@ -109,7 +105,7 @@ func formatProductsData(data, savedProducts []byte) []domain.Product {
 	// Format data
 	raw := strings.Split(string(data), "\n")
 	products := make([]domain.Product, len(raw)-1)
-	regex := regexp.MustCompile(`(?P<left>[a-zA-Z0-9])(?:')(?P<right>[0-9])`)
+	regex := regexp.MustCompile(`(?P<left>[\w\W])(?:')(?P<right>[0-9])`)
 
 	for i := 0; i < len(raw)-1; i++ {
 		// Work to format data. Here delete double quote and replace the leftmost
