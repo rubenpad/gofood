@@ -4,7 +4,7 @@ Visualizer of clients and transactions
 
 This repository contains code for the backend of GOODFOOD application. [In this link you can see code for web interface](https://github.com/rubbenpad/gofood)
 
-### Requirements:
+## Requirements:
 
 1. Get data from external sources and format it to store in a graph-based database
 
@@ -26,14 +26,30 @@ This repository contains code for the backend of GOODFOOD application. [In this 
     - List all clients
     - See information about specific client
 
-### Technologies:
+## API
+
+### Load data
+
+POST `/data` Load data according date send
+
+| Param |   Sample   |      Type      | Required |
+| :---: | :--------: | :------------: | :------: |
+| date  | 1603238400 | Unix timestamp |   true   |
+
+### Buyers
+
+GET `/buyers` All buyers in the platform
+
+GET `/buyers/{{buyerId}}` Information about a buyer
+
+## Technologies:
 
 -   [Go](https://golang.org)
 -   [Chi Router](https://github.com/go-chi/chi)
 -   [DGraph](https://dgraph.io)
 -   [Vue](https://vuejs.org) and [Vuetify](https://vuetifyjs.com)
 
-### Quick start:
+## Quick start:
 
 1. Clone this repository:
 
