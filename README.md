@@ -1,11 +1,54 @@
-# GOODFOOD BACKEND
+# GOODFOOD
 
-GOODFOOD offers an API that allow recollect data in different formats from external sources, format it, store in a graph-based database and send it to a UI client to visualize it.
+Visualizer of clients and transactions
 
-Technologies:
+This repository contains code for the backend of GOODFOOD application. [In this link you can see code for web interface](https://github.com/rubbenpad/gofood)
 
--   Go
--   Chi to manage routes
--   DGraph Database
+### Requirements:
 
-Here you can see the frontend for this application: [GOODFOOD FRONTEND](https://github.com/rubbenpad/vuefood)
+1. Get data from external sources and format it to store in a graph-based database
+
+    - Products
+    - Clients
+    - Transactions
+
+2. List all clients of the platform
+
+3. Get information about a specific client by his ID
+
+    - Transactions history
+    - Other clients using the same IP
+    - Recommendations about products that other people also buy
+
+4. Create a web interface to visualize the data
+
+    - Select a date to load data from
+    - List all clients
+    - See information about specific client
+
+### Technologies:
+
+-   [Go](https://golang.org)
+-   [Chi Router](https://github.com/go-chi/chi)
+-   [DGraph](https://dgraph.io)
+-   [Vue](https://vuejs.org) and [Vuetify](https://vuetifyjs.com)
+
+### Quick start:
+
+1. Clone this repository:
+
+    `git clone git@github.com:rubbenpad/gofood.git`
+
+2. Navigate into your new folder and run dgraph database
+
+    > You need to have installed docker and docker-compose
+
+    `cd gofood`
+
+    `docker-compose up -d`
+
+3. Navigate into src/ folder and start the application
+
+    `cd src`
+
+    `go run main.go`
