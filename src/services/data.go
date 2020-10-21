@@ -25,20 +25,22 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 		return dateExists, nil
 	}
 
+	// Build a hash map of request to then fetch data concurrently
 	requests := ld.buildRequests(date)
 	results := ld.fetchConcurrently(requests)
 
+	// Get data already saved `products` and `buyers` to compare them with new data
+	// and avoid have duplicates.
 	savedProducts, _ := store.FindAllProducts()
 	products := formatProductsData(results["products"].response.data, savedProducts)
 
 	savedBuyers, _ := store.FindAllBuyers()
 	buyers := formatBuyersData(results["buyers"].response.data, savedBuyers)
 
-	// Encoded and save products
+	// First encode and save products and buyers then transactions.
 	encodedProducts, _ := json.Marshal(products)
 	assignedProducts, _ := store.Save(encodedProducts)
 
-	// Encoded and save buyers
 	encodedBuyers, _ := json.Marshal(buyers)
 	assignedBuyers, _ := store.Save(encodedBuyers)
 
@@ -98,7 +100,6 @@ type requestResult struct {
 }
 
 func (ld *loadDataService) fetchConcurrently(requests map[string]func() (*remoteResponse, error)) map[string]*requestResult {
-
 	cn := make(chan *requestResult, len(requests))
 	fns := make([]func(), len(requests))
 
