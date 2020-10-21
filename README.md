@@ -30,7 +30,7 @@ This repository contains code for the backend of GOODFOOD application. [In this 
 
 ### Load data
 
-POST `/data` Load data according date send
+**POST** `/data` Load data according date sent
 
 | Param |   Sample   |      Type      | Required |
 | :---: | :--------: | :------------: | :------: |
@@ -38,9 +38,13 @@ POST `/data` Load data according date send
 
 ### Buyers
 
-GET `/buyers` All buyers in the platform
+**GET** `/buyers` All buyers in the platform
 
-GET `/buyers/{{buyerId}}` Information about a buyer
+**GET** `/buyers/{{buyer_id}}` Information about a buyer
+
+|  Param   |  Sample  |  Type  | Required |
+| :------: | :------: | :----: | :------: |
+| buyer_id | 6d910e7c | string |   true   |
 
 ## Technologies:
 
