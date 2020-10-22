@@ -2,7 +2,7 @@
 
 Visualizer of clients and transactions
 
-This repository contains code for the backend of GOODFOOD application. [In this link you can see code for web interface](https://github.com/rubbenpad/gofood)
+This repository contains code for the backend of GOODFOOD application. [In this link you can see code for web interface](https://github.com/rubbenpad/vuefood)
 
 ## Requirements:
 
