@@ -59,6 +59,18 @@ This repository contains code for the backend of GOODFOOD application. [In this 
 
     `git clone git@github.com:rubbenpad/gofood.git`
 
+2. Create a `.env` file and fill the same fields that are in the `.env.example` file:
+
+    ```sh
+        # External endpoint to request data
+        BASE_URL=
+        # Database host localhost:9080 see dgraph docs
+        DGRAPH_HOST=
+        # YES the first time you run the application to sync
+        # the schema in your database
+        SETUP_DB=
+    ```
+
 2. Navigate into your new folder and run dgraph database
 
     > You need to have installed docker and docker-compose
@@ -67,7 +79,7 @@ This repository contains code for the backend of GOODFOOD application. [In this 
 
     `docker-compose up -d`
 
-3. Navigate into src/ folder and start the application
+3. Navigate into src/ folder compile and start the application
 
     `cd src`
 
