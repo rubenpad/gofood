@@ -30,21 +30,33 @@ This repository contains code for the backend of GOODFOOD application. [In this 
 
 ### Load data
 
-**POST** `/data` Load data according date sent
+**POST** `/data` Load data according date sent in query params
 
 | Param |   Sample   |      Type      | Required |
 | :---: | :--------: | :------------: | :------: |
 | date  | 1603238400 | Unix timestamp |   true   |
 
+Example:
+
+`http://localhost:3000/data?date=1603238400`
+
 ### Buyers
 
 **GET** `/buyers` All buyers in the platform
+
+Example:
+
+`http://localhost:3000/buyers`
 
 **GET** `/buyers/{{buyer_id}}` Information about a buyer
 
 |  Param   |  Sample  |  Type  | Required |
 | :------: | :------: | :----: | :------: |
 | buyer_id | 6d910e7c | string |   true   |
+
+Example:
+
+`http://localhost:3000/buyers/6d910e7c`
 
 ## Technologies:
 
