@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"regexp"
@@ -10,21 +11,30 @@ import (
 	"github.com/rubbenpad/gofood/domain"
 )
 
-func formatTransactionsData(date string, data []byte, productsUids, buyersUids map[string]string) []domain.Transaction {
-	raw := strings.Split(string(data), "\x00\x00")
-	transactions := make([]domain.Transaction, len(raw)-1)
+func formatTransactionsData(
+	date string,
+	bytesData []byte,
+	productsUids,
+	buyersUids map[string]string) []domain.Transaction {
 
-	for i := 0; i < len(raw)-1; i++ {
-		str := raw[i]
-		str = strings.Replace(str, "#", "", -1)
-		str = strings.Replace(str, "(", "", -1)
-		str = strings.Replace(str, ")", "", -1)
+	splittedData := bytes.Split(bytesData, []byte("\x00\x00"))
+	transactions := make([]domain.Transaction, len(splittedData)-1)
 
-		rawstr := strings.Split(str, "\x00")
-		productIdsRaw := strings.Split(rawstr[4], ",")
-		productsid := make([]domain.Uid, len(productIdsRaw))
+	for i, raw := range splittedData {
+		if len(raw) == 0 {
+			break
+		}
 
-		for j, pid := range productIdsRaw {
+		raw = bytes.Replace(raw, []byte("#"), []byte(""), -1)
+		raw = bytes.Replace(raw, []byte("("), []byte(""), -1)
+		raw = bytes.Replace(raw, []byte(")"), []byte(""), -1)
+
+		data := bytes.Split(raw, []byte("\x00"))
+		rawProductsID := bytes.Split(data[4], []byte(","))
+		productsid := make([]domain.Uid, len(rawProductsID))
+
+		for j, v := range rawProductsID {
+			pid := string(v)
 			if val, ok := productsUids[pid]; ok {
 				productsid[j] = domain.Uid{UID: val}
 			} else {
@@ -33,19 +43,22 @@ func formatTransactionsData(date string, data []byte, productsUids, buyersUids m
 		}
 
 		owner := domain.Uid{}
-		if val, ok := buyersUids[rawstr[1]]; ok {
+		buyerID := string(data[1])
+		if val, ok := buyersUids[buyerID]; ok {
 			owner.UID = val
 		} else {
-			owner.UID = "_:" + rawstr[1]
+			owner.UID = "_:" + buyerID
 		}
 
 		when := domain.Timestamp{UID: "_:" + date, Date: date}
+		from := domain.Ip{IP: string(data[2]), UID: "_:" + string(data[2])}
+
 		transactions[i] = domain.Transaction{
-			ID:       rawstr[0],
-			Device:   rawstr[3],
+			ID:       string(data[0]),
+			Device:   string(data[3]),
 			When:     when,
 			Products: productsid,
-			From:     domain.Ip{IP: rawstr[2], UID: "_:" + rawstr[2]},
+			From:     from,
 			Owner:    owner,
 		}
 	}
