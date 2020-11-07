@@ -8,19 +8,6 @@ import (
 	"github.com/rubbenpad/gofood/domain"
 )
 
-// Indicates if should append when exists a comma `,` or a close parenthesis `)`
-func shouldAppend(ch byte) bool {
-	return ch == 44 || ch == 41
-}
-
-func isOpenParenthesis(ch byte) bool {
-	return ch == 40
-}
-
-func shouldChangeProcess(ch byte) bool {
-	return ch == 0
-}
-
 func formatTransactionsData(
 	date string,
 	bytesData []byte,
@@ -29,68 +16,45 @@ func formatTransactionsData(
 
 	data := bytes.Split(bytesData, []byte("\x00\x00"))
 	transactions := make([]domain.Transaction, len(data)-1)
+	empty := []byte("")
 
-	for i := range data {
-		raw := string(data[i])
+	for i, raw := range data {
 		if len(raw) == 0 {
 			break
 		}
 
-		var ip, device, productID string
-		productsID := []domain.Uid{}
+		raw = bytes.Replace(raw, []byte("#"), empty, 1)
+		raw = bytes.Replace(raw, []byte("("), empty, 1)
+		raw = bytes.Replace(raw, []byte(")"), empty, 1)
+		d := bytes.Split(raw, []byte("\x00"))
 
-		k, process := 23, 0
-		for k < len(raw) {
-			ch := raw[k]
+		rawProductsID := bytes.Split(d[4], []byte(","))
+		productsID := make([]domain.Uid, len(rawProductsID))
+		for k := range rawProductsID {
+			productID := string(rawProductsID[k])
 
-			switch {
-			case process == 0 && !shouldChangeProcess(ch):
-				ip += string(ch)
-				k++
-			case process == 1 && !shouldChangeProcess(ch):
-				device += string(ch)
-				k++
-			case process == 2 && !shouldChangeProcess(ch):
-				if isOpenParenthesis(ch) {
-					k++
-				} else {
-					productID += string(ch)
-					k++
-
-					if shouldAppend(raw[k]) {
-						p := domain.Uid{}
-						if val, ok := productsUids[productID]; ok {
-							p.UID = val
-						} else {
-							p.UID = "_:" + productID
-						}
-
-						productsID = append(productsID, p)
-						productID = ""
-						k++
-					}
-				}
-			default:
-				process++
-				k++
+			if val, ok := productsUids[productID]; ok {
+				productsID[k] = domain.Uid{UID: val}
+			} else {
+				productsID[k] = domain.Uid{UID: "_:" + productID}
 			}
 		}
 
-		id := string(raw[1:13])
-		buyerID := string(raw[14:22])
 		owner := domain.Uid{}
+		buyerID := string(d[1])
 		if val, ok := buyersUids[buyerID]; ok {
 			owner.UID = val
 		} else {
 			owner.UID = "_:" + buyerID
 		}
 
-		when := domain.Timestamp{UID: "_:" + date, Date: date}
+		ip := string(d[2])
 		from := domain.Ip{UID: "_:" + ip, IP: ip}
+		when := domain.Timestamp{UID: "_:" + date, Date: date}
 
 		transactions[i] = domain.Transaction{
-			ID:       id,
-			Device:   device,
+			ID:       string(d[0]),
+			Device:   string(d[3]),
 			When:     when,
 			Products: productsID,
 			From:     from,
@@ -183,14 +147,14 @@ func formatProductsData(bytesData []byte, productsInStore []domain.Product) []do
 }
 
 func formatBuyersData(data []byte, buyersInStore []domain.Buyer) []domain.Buyer {
+	buyers := []domain.Buyer{}
+	json.Unmarshal(data, &buyers)
+
 	buyersMap := make(map[string]string, len(buyersInStore))
 	for i := range buyersInStore {
 		current := buyersInStore[i]
 		buyersMap[current.ID] = current.UID
 	}
-
-	buyers := []domain.Buyer{}
-	json.Unmarshal(data, &buyers)
 
 	for k := range buyers {
 		if val, ok := buyersMap[buyers[k].ID]; ok {
