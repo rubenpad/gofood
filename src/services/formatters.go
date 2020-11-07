@@ -3,10 +3,10 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
-	"regexp"
 	"strconv"
-	"strings"
+	"time"
 
 	"github.com/rubbenpad/gofood/domain"
 )
@@ -17,6 +17,7 @@ func formatTransactionsData(
 	productsUids,
 	buyersUids map[string]string) []domain.Transaction {
 
+	ts := time.Now()
 	splittedData := bytes.Split(bytesData, []byte("\x00\x00"))
 	transactions := make([]domain.Transaction, len(splittedData)-1)
 
@@ -62,53 +63,103 @@ func formatTransactionsData(
 			Owner:    owner,
 		}
 	}
+
+	te := time.Now()
+	fmt.Println("Transactions time: ", te.Sub(ts))
 	return transactions
 }
 
-type sp struct {
+// Helper functions to format products data
+func isSingleQuote(ch byte) bool {
+	return ch == 39
+}
+
+func isDoubleQuote(ch byte) bool {
+	return ch == 34
+}
+
+func isDigit(ch byte) bool {
+	return ch >= 48 && ch <= 57
+}
+
+type productsInStore struct {
 	Products []domain.Product `json:"products"`
 }
 
-func formatProductsData(data, savedProducts []byte) []domain.Product {
-	sP := sp{}
-	spE := json.Unmarshal(savedProducts, &sP)
-	if spE != nil {
+func formatProductsData(bytesData, savedProducts []byte) []domain.Product {
+	ts := time.Now()
+	sip := productsInStore{}
+	sipError := json.Unmarshal(savedProducts, &sip)
+	if sipError != nil {
 		log.Panic("Error trying to decode data")
 	}
 
-	productsMap := make(map[string]string, len(sP.Products))
-	for i := range sP.Products {
-		current := sP.Products[i]
+	// Creates a map to search fast what products already exists in the store
+	productsMap := make(map[string]string, len(sip.Products))
+	for i := range sip.Products {
+		current := sip.Products[i]
 		productsMap[current.ID] = current.UID
 	}
 
-	raw := strings.Split(string(data), "\n")
-	products := make([]domain.Product, len(raw)-1)
-	regex := regexp.MustCompile(`(?P<left>[\w\W])(?:')(?P<right>[0-9])`)
+	data := bytes.Split(bytesData, []byte("\n"))
+	products := make([]domain.Product, len(data)-1)
 
-	for i := 0; i < len(raw)-1; i++ {
-		item := raw[i]
-		item = strings.Replace(item, "\"", "", -1)
-		item = strings.Replace(item, "'", ",", 1)
-		item = regex.ReplaceAllString(item, "$left,$right")
-		rawItem := strings.Split(item, ",")
-		price, _ := strconv.Atoi(rawItem[2])
+	for i := range data {
+		raw := string(data[i])
+		if len(raw) == 0 {
+			break
+		}
 
-		uid := ""
-		if val, ok := productsMap[rawItem[0]]; ok {
+		var k int
+		var id string
+		if isSingleQuote(raw[7]) {
+			id = raw[:7]
+			k = 8
+		} else {
+			id = raw[:8]
+			k = 9
+		}
+
+		start, end := k, 0
+		quoted := false
+		for k < len(raw) {
+			if isDoubleQuote(raw[start]) {
+				quoted = true
+				start++
+				k++
+			} else if isSingleQuote(raw[k]) && isDigit(raw[k+1]) {
+				if quoted {
+					end = k - 1
+					k++
+					break
+				} else {
+					end = k
+					k++
+					break
+				}
+			}
+			k++
+		}
+
+		// Assign uid and price
+		var uid string
+		rawPrice, _ := strconv.Atoi(raw[k:len(raw)])
+		if val, ok := productsMap[id]; ok {
 			uid = val
 		} else {
-			uid = "_:" + rawItem[0]
+			uid = "_:" + id
 		}
 
 		products[i] = domain.Product{
 			UID:   uid,
-			ID:    rawItem[0],
-			Name:  rawItem[1],
-			Price: price,
+			ID:    id,
+			Name:  raw[start:end],
+			Price: rawPrice,
 		}
 	}
 
+	te := time.Now()
+	fmt.Println("Products time: ", te.Sub(ts))
 	return products
 }
 
@@ -117,6 +168,7 @@ type sb struct {
 }
 
 func formatBuyersData(data, savedBuyers []byte) []domain.Buyer {
+	ts := time.Now()
 	sby := sb{}
 	sbE := json.Unmarshal(savedBuyers, &sby)
 	if sbE != nil {
@@ -140,5 +192,7 @@ func formatBuyersData(data, savedBuyers []byte) []domain.Buyer {
 		}
 	}
 
+	te := time.Now()
+	fmt.Println("Transactions time: ", te.Sub(ts))
 	return buyers
 }
