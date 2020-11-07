@@ -19,28 +19,25 @@ func NewloadDataService() *loadDataService {
 
 func (ld *loadDataService) GetData(date string) (bool, error) {
 	store := store.New()
-
 	if dateExists := store.GetDate(date); dateExists {
 		return dateExists, nil
 	}
 
-	// Build a hash map of request to then fetch data concurrently
+	// Build requests to remote data and fetch concurrently
 	requests := ld.buildRequests(date)
 	results := ld.fetchConcurrently(requests)
 
-	// Get data already saved `products` and `buyers` to compare them with new data
-	// and avoid have duplicates.
+	// Format, encode and save products and buyers data
 	all := store.FindAll()
 	products := formatProductsData(results["products"].response.data, all.Products)
 	buyers := formatBuyersData(results["buyers"].response.data, all.Buyers)
 
-	// First encode and save products and buyers then transactions.
 	encodedProducts, _ := json.Marshal(products)
-	assignedProducts, _ := store.Save(encodedProducts)
-
 	encodedBuyers, _ := json.Marshal(buyers)
+	assignedProducts, _ := store.Save(encodedProducts)
 	assignedBuyers, _ := store.Save(encodedBuyers)
 
+	// Format, encode and save transactions data
 	transactions := formatTransactionsData(
 		date,
 		results["transactions"].response.data,
@@ -48,9 +45,7 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 		assignedBuyers.Uids,
 	)
 	encodedTransactions, _ := json.Marshal(transactions)
-	_, err := store.Save(encodedTransactions)
-
-	if err != nil {
+	if _, err := store.Save(encodedTransactions); err != nil {
 		return false, err
 	}
 
