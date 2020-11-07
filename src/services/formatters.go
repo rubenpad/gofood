@@ -3,13 +3,24 @@ package services
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"strconv"
-	"time"
 
 	"github.com/rubbenpad/gofood/domain"
 )
+
+// Indicates if should append when exists a comma `,` or a close parenthesis `)`
+func shouldAppend(ch byte) bool {
+	return ch == 44 || ch == 41
+}
+
+func isOpenParenthesis(ch byte) bool {
+	return ch == 40
+}
+
+func shouldChangeProcess(ch byte) bool {
+	return ch == 0
+}
 
 func formatTransactionsData(
 	date string,
@@ -17,34 +28,58 @@ func formatTransactionsData(
 	productsUids,
 	buyersUids map[string]string) []domain.Transaction {
 
-	ts := time.Now()
-	splittedData := bytes.Split(bytesData, []byte("\x00\x00"))
-	transactions := make([]domain.Transaction, len(splittedData)-1)
+	data := bytes.Split(bytesData, []byte("\x00\x00"))
+	transactions := make([]domain.Transaction, len(data)-1)
 
-	for i, raw := range splittedData {
+	for i := range data {
+		raw := string(data[i])
 		if len(raw) == 0 {
 			break
 		}
 
-		raw = bytes.Replace(raw, []byte("#"), []byte(""), -1)
-		raw = bytes.Replace(raw, []byte("("), []byte(""), -1)
-		raw = bytes.Replace(raw, []byte(")"), []byte(""), -1)
+		var ip, device, productID string
+		productsID := []domain.Uid{}
 
-		data := bytes.Split(raw, []byte("\x00"))
-		rawProductsID := bytes.Split(data[4], []byte(","))
-		productsid := make([]domain.Uid, len(rawProductsID))
+		k, process := 23, 0
+		for k < len(raw) {
+			ch := raw[k]
 
-		for j, v := range rawProductsID {
-			pid := string(v)
-			if val, ok := productsUids[pid]; ok {
-				productsid[j] = domain.Uid{UID: val}
-			} else {
-				productsid[j] = domain.Uid{UID: "_:" + pid}
+			switch {
+			case process == 0 && !shouldChangeProcess(ch):
+				ip += string(ch)
+				k++
+			case process == 1 && !shouldChangeProcess(ch):
+				device += string(ch)
+				k++
+			case process == 2 && !shouldChangeProcess(ch):
+				if isOpenParenthesis(ch) {
+					k++
+				} else {
+					productID += string(ch)
+					k++
+
+					if shouldAppend(raw[k]) {
+						p := domain.Uid{}
+						if val, ok := productsUids[productID]; ok {
+							p.UID = val
+						} else {
+							p.UID = "_:" + productID
+						}
+
+						productsID = append(productsID, p)
+						productID = ""
+						k++
+					}
+				}
+			default:
+				process++
+				k++
 			}
 		}
 
+		id := string(raw[1:13])
+		buyerID := string(raw[14:22])
 		owner := domain.Uid{}
-		buyerID := string(data[1])
 		if val, ok := buyersUids[buyerID]; ok {
 			owner.UID = val
 		} else {
@@ -52,20 +87,18 @@ func formatTransactionsData(
 		}
 
 		when := domain.Timestamp{UID: "_:" + date, Date: date}
-		from := domain.Ip{IP: string(data[2]), UID: "_:" + string(data[2])}
+		from := domain.Ip{UID: "_:" + ip, IP: ip}
 
 		transactions[i] = domain.Transaction{
-			ID:       string(data[0]),
-			Device:   string(data[3]),
+			ID:       id,
+			Device:   device,
 			When:     when,
-			Products: productsid,
+			Products: productsID,
 			From:     from,
 			Owner:    owner,
 		}
 	}
 
-	te := time.Now()
-	fmt.Println("Transactions time: ", te.Sub(ts))
 	return transactions
 }
 
@@ -87,7 +120,6 @@ type productsInStore struct {
 }
 
 func formatProductsData(bytesData, savedProducts []byte) []domain.Product {
-	ts := time.Now()
 	sip := productsInStore{}
 	sipError := json.Unmarshal(savedProducts, &sip)
 	if sipError != nil {
@@ -158,26 +190,23 @@ func formatProductsData(bytesData, savedProducts []byte) []domain.Product {
 		}
 	}
 
-	te := time.Now()
-	fmt.Println("Products time: ", te.Sub(ts))
 	return products
 }
 
-type sb struct {
+type buyersInStore struct {
 	Buyers []domain.Buyer `json:"buyers"`
 }
 
 func formatBuyersData(data, savedBuyers []byte) []domain.Buyer {
-	ts := time.Now()
-	sby := sb{}
-	sbE := json.Unmarshal(savedBuyers, &sby)
-	if sbE != nil {
+	bis := buyersInStore{}
+	bisError := json.Unmarshal(savedBuyers, &bis)
+	if bisError != nil {
 		log.Panic("Error trying to decode data")
 	}
 
-	buyersMap := make(map[string]string, len(sby.Buyers))
-	for i := range sby.Buyers {
-		current := sby.Buyers[i]
+	buyersMap := make(map[string]string, len(bis.Buyers))
+	for i := range bis.Buyers {
+		current := bis.Buyers[i]
 		buyersMap[current.ID] = current.UID
 	}
 
@@ -192,7 +221,5 @@ func formatBuyersData(data, savedBuyers []byte) []domain.Buyer {
 		}
 	}
 
-	te := time.Now()
-	fmt.Println("Transactions time: ", te.Sub(ts))
 	return buyers
 }
