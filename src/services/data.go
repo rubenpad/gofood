@@ -19,9 +19,8 @@ func NewloadDataService() *loadDataService {
 
 func (ld *loadDataService) GetData(date string) (bool, error) {
 	store := store.New()
-	dateExists := store.GetDate(date)
 
-	if dateExists {
+	if dateExists := store.GetDate(date); dateExists {
 		return dateExists, nil
 	}
 
@@ -31,11 +30,9 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 
 	// Get data already saved `products` and `buyers` to compare them with new data
 	// and avoid have duplicates.
-	savedProducts, _ := store.FindAllProducts()
-	products := formatProductsData(results["products"].response.data, savedProducts)
-
-	savedBuyers, _ := store.FindAllBuyers()
-	buyers := formatBuyersData(results["buyers"].response.data, savedBuyers)
+	all := store.FindAll()
+	products := formatProductsData(results["products"].response.data, all.Products)
+	buyers := formatBuyersData(results["buyers"].response.data, all.Buyers)
 
 	// First encode and save products and buyers then transactions.
 	encodedProducts, _ := json.Marshal(products)

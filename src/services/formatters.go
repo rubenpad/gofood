@@ -3,7 +3,6 @@ package services
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"strconv"
 
 	"github.com/rubbenpad/gofood/domain"
@@ -115,21 +114,11 @@ func isDigit(ch byte) bool {
 	return ch >= 48 && ch <= 57
 }
 
-type productsInStore struct {
-	Products []domain.Product `json:"products"`
-}
-
-func formatProductsData(bytesData, savedProducts []byte) []domain.Product {
-	sip := productsInStore{}
-	sipError := json.Unmarshal(savedProducts, &sip)
-	if sipError != nil {
-		log.Panic("Error trying to decode data")
-	}
-
+func formatProductsData(bytesData []byte, productsInStore []domain.Product) []domain.Product {
 	// Creates a map to search fast what products already exists in the store
-	productsMap := make(map[string]string, len(sip.Products))
-	for i := range sip.Products {
-		current := sip.Products[i]
+	productsMap := make(map[string]string, len(productsInStore))
+	for i := range productsInStore {
+		current := productsInStore[i]
 		productsMap[current.ID] = current.UID
 	}
 
@@ -193,20 +182,10 @@ func formatProductsData(bytesData, savedProducts []byte) []domain.Product {
 	return products
 }
 
-type buyersInStore struct {
-	Buyers []domain.Buyer `json:"buyers"`
-}
-
-func formatBuyersData(data, savedBuyers []byte) []domain.Buyer {
-	bis := buyersInStore{}
-	bisError := json.Unmarshal(savedBuyers, &bis)
-	if bisError != nil {
-		log.Panic("Error trying to decode data")
-	}
-
-	buyersMap := make(map[string]string, len(bis.Buyers))
-	for i := range bis.Buyers {
-		current := bis.Buyers[i]
+func formatBuyersData(data []byte, buyersInStore []domain.Buyer) []domain.Buyer {
+	buyersMap := make(map[string]string, len(buyersInStore))
+	for i := range buyersInStore {
+		current := buyersInStore[i]
 		buyersMap[current.ID] = current.UID
 	}
 

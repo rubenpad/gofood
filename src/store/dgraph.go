@@ -93,6 +93,32 @@ func (dg *dgraph) GetDate(date string) bool {
 	return true
 }
 
+type allResponse struct {
+	Buyers   []domain.Buyer
+	Products []domain.Product
+}
+
+func (dg *dgraph) FindAll() allResponse {
+	query := `
+		{
+			buyers(func: has(age)) {
+				uid id
+			}
+			products(func: has(price)) {
+				uid id
+			}
+		}
+	`
+	res, _ := dg.db.NewTxn().Query(context.Background(), query)
+
+	decode := allResponse{}
+	if err := json.Unmarshal(res.GetJson(), &decode); err != nil {
+		log.Println("Error traying to decode data")
+	}
+
+	return decode
+}
+
 func (dg *dgraph) FindAllBuyers() ([]byte, error) {
 	query := `
 		query allBuyers() {
