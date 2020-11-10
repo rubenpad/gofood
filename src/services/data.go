@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -32,10 +31,8 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 	products := formatProductsData(results["products"].response.data, all.Products)
 	buyers := formatBuyersData(results["buyers"].response.data, all.Buyers)
 
-	encodedProducts, _ := json.Marshal(products)
-	encodedBuyers, _ := json.Marshal(buyers)
-	assignedProducts, _ := store.Save(encodedProducts)
-	assignedBuyers, _ := store.Save(encodedBuyers)
+	assignedProducts, _ := store.Save(products)
+	assignedBuyers, _ := store.Save(buyers)
 
 	// Format, encode and save transactions data
 	transactions := formatTransactionsData(
@@ -44,8 +41,7 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 		assignedProducts.Uids,
 		assignedBuyers.Uids,
 	)
-	encodedTransactions, _ := json.Marshal(transactions)
-	if _, err := store.Save(encodedTransactions); err != nil {
+	if _, err := store.Save(transactions); err != nil {
 		return false, err
 	}
 

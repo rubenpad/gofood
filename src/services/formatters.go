@@ -12,7 +12,7 @@ func formatTransactionsData(
 	date string,
 	bytesData []byte,
 	productsUids,
-	buyersUids map[string]string) []domain.Transaction {
+	buyersUids map[string]string) []byte {
 
 	data := bytes.Split(bytesData, []byte("\x00\x00"))
 	transactions := make([]domain.Transaction, len(data)-1)
@@ -62,7 +62,8 @@ func formatTransactionsData(
 		}
 	}
 
-	return transactions
+	encodedTransactions, _ := json.Marshal(transactions)
+	return encodedTransactions
 }
 
 // Helper functions to format products data
@@ -78,7 +79,7 @@ func isDigit(ch byte) bool {
 	return ch >= 48 && ch <= 57
 }
 
-func formatProductsData(bytesData []byte, productsInStore []domain.Product) []domain.Product {
+func formatProductsData(bytesData []byte, productsInStore []domain.Product) []byte {
 	// Creates a map to search fast what products already exists in the store
 	productsMap := make(map[string]string, len(productsInStore))
 	for i := range productsInStore {
@@ -143,10 +144,11 @@ func formatProductsData(bytesData []byte, productsInStore []domain.Product) []do
 		}
 	}
 
-	return products
+	encodedProducts, _ := json.Marshal(products)
+	return encodedProducts
 }
 
-func formatBuyersData(data []byte, buyersInStore []domain.Buyer) []domain.Buyer {
+func formatBuyersData(data []byte, buyersInStore []domain.Buyer) []byte {
 	buyers := []domain.Buyer{}
 	json.Unmarshal(data, &buyers)
 
@@ -164,5 +166,6 @@ func formatBuyersData(data []byte, buyersInStore []domain.Buyer) []domain.Buyer 
 		}
 	}
 
-	return buyers
+	encodedBuyers, _ := json.Marshal(buyers)
+	return encodedBuyers
 }
