@@ -9,14 +9,15 @@ import (
 )
 
 func LoadDataAPI(ap *app.App) {
-	loadDataService := services.NewloadDataService()
+	dataService := services.NewDataService()
 
 	ap.Router.Post("/data", func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("date")
-		dataIsAlreadyLoaded, err := loadDataService.GetData(date)
+		dataIsAlreadyLoaded, err := dataService.Load(date)
+
+		res := response{}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		res := response{}
 
 		if dataIsAlreadyLoaded {
 			res.Message = "Data for this date is already loaded"
@@ -34,7 +35,7 @@ func LoadDataAPI(ap *app.App) {
 			return
 		}
 
-		res.Message = "Data loaded"
+		res.Message = "Data is being loaded"
 		res.Status = "OK"
 		json.NewEncoder(w).Encode(res)
 		return
