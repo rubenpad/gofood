@@ -1,10 +1,12 @@
 package services
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
 
+	"github.com/rubbenpad/gofood/domain"
 	"github.com/rubbenpad/gofood/store"
 )
 
@@ -22,6 +24,11 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 		return dateExists, nil
 	}
 
+	// Save date
+	d := domain.Timestamp{UID: "_:" + date, Date: date}
+	encodedDate, _ := json.Marshal(d)
+	assignedDate, _ := store.Save(encodedDate)
+
 	// Build requests to remote data and fetch concurrently
 	requests := ld.buildRequests(date)
 	results := ld.fetchConcurrently(requests)
@@ -36,7 +43,7 @@ func (ld *loadDataService) GetData(date string) (bool, error) {
 
 	// Format, encode and save transactions data
 	transactions := formatTransactionsData(
-		date,
+		assignedDate.Uids[date],
 		results["transactions"].response.data,
 		assignedProducts.Uids,
 		assignedBuyers.Uids,

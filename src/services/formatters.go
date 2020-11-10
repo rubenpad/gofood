@@ -9,7 +9,7 @@ import (
 )
 
 func formatTransactionsData(
-	date string,
+	dateUID string,
 	bytesData []byte,
 	productsUids,
 	buyersUids map[string]string) []byte {
@@ -50,7 +50,7 @@ func formatTransactionsData(
 
 		ip := string(d[2])
 		from := domain.Ip{UID: "_:" + ip, IP: ip}
-		when := domain.Timestamp{UID: "_:" + date, Date: date}
+		when := domain.Uid{UID: dateUID}
 
 		transactions[i] = domain.Transaction{
 			ID:       string(d[0]),
