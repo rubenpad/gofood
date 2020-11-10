@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,7 +18,6 @@ func NewETLService() *etlService {
 }
 
 func (etl *etlService) GetData(dateUID, date string) {
-	fmt.Println("Starting")
 	store := store.New()
 
 	// Build requests to remote data and fetch concurrently
@@ -41,12 +39,10 @@ func (etl *etlService) GetData(dateUID, date string) {
 		assignedProducts.Uids,
 		assignedBuyers.Uids,
 	)
+
 	if _, err := store.Save(transactions); err != nil {
 		log.Panic("Error trying to store transactions data")
 	}
-
-	fmt.Println("Finishing")
-
 }
 
 func (etl *etlService) buildRequests(date string) map[string]func() (*remoteResponse, error) {

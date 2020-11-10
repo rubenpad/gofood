@@ -80,7 +80,7 @@ Example:
         BASE_URL=
         # Database host localhost:9080 see dgraph docs
         DGRAPH_HOST=
-        # YES the first time you run the application to sync
+        # `yes` the first time you run the application to sync
         # the schema in your database
         SETUP_DB=
     ```
