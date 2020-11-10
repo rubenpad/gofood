@@ -26,6 +26,7 @@ func (ld *dataService) Load(date string) (bool, error) {
 	encodedDate, _ := json.Marshal(d)
 	assignedDate, _ := store.Save(encodedDate)
 
+	// Start a goroutine to run GetData process in background
 	go etl.GetData(assignedDate.Uids[date], date)
 
 	return false, nil

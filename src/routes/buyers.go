@@ -15,9 +15,9 @@ func BuyersAPI(ap *app.App) {
 
 	ap.Router.Get("/buyers", func(w http.ResponseWriter, r *http.Request) {
 		data, err := buyersService.FindAllBuyers()
+		res := response{}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		res := response{}
 
 		if err != nil {
 			res.Message = "Failed to fetch buyer's data"
@@ -40,9 +40,9 @@ func BuyersAPI(ap *app.App) {
 		id := chi.URLParam(r, "id")
 		data, err := buyersService.FindTransactions(id)
 
+		res := response{}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		res := response{}
 
 		if err != nil {
 			res.Message = "Failed to fetch buyer's data"
@@ -53,6 +53,14 @@ func BuyersAPI(ap *app.App) {
 
 		datadecoded := decodeddata{}
 		json.Unmarshal(data, &datadecoded)
+
+		if len(datadecoded.Buyer) == 0 {
+			w.WriteHeader(http.StatusNotFound)
+			res.Message = "Not Found"
+			res.Status = "OK"
+			json.NewEncoder(w).Encode(res)
+			return
+		}
 
 		res.Data = datadecoded
 		res.Message = "Success"
