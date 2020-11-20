@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 
@@ -27,6 +28,8 @@ func New() *dgraph {
 	if err != nil {
 		log.Panic("Couldn't connect to dgraph")
 	}
+
+	fmt.Println(connection.GetState())
 
 	db := dgo.NewDgraphClient(api.NewDgraphClient(connection))
 	return &dgraph{db: db}

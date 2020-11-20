@@ -3,12 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/rubbenpad/gofood/app"
 	"github.com/rubbenpad/gofood/routes"
-	"github.com/rubbenpad/gofood/store"
 )
 
 func init() {
@@ -19,12 +17,13 @@ func init() {
 
 func main() {
 
-	// This allows sync store schema
-	setupStore, _ := os.LookupEnv("SETUP_DB")
-	if setupStore == "yes" {
-		store := store.New()
-		store.Setup()
-	}
+	/*
+		// This allows sync store schema
+		setupStore, _ := os.LookupEnv("SETUP_DB")
+		if setupStore == "yes" {
+			store := store.New()
+			store.Setup()
+		}*/
 
 	// Start app and pass it as parameter to api's
 	ap := app.New()
